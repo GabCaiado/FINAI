@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+sqlalchemy>=2.0
+pydantic>=2
+pydantic-settings
+pandas
+pdfplumber
+python-multipart
+argon2-cffi
+pyjwt
+slowapi
+psycopg[binary]
+openai
+pytest
+httpx

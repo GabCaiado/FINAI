@@ -1,0 +1,13 @@
+.env
+*.db
+.venv/
+__pycache__/
+.pytest_cache/
+node_modules/
+dist/
+.DS_Store
+
+# AI tooling and planning docs: not code, kept local only
+CLAUDE.md
+.claude/
+docs/
