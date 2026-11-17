@@ -1,6 +1,6 @@
 import pytest
 
-from app.ai.rules import RULE_CONFIDENCE, RULES, RuleHit, apply_rules
+from app.ai.rules import INTERNAL_MERCHANTS, RULE_CONFIDENCE, RULES, apply_rules
 from app.categories import CATEGORIES
 
 # (cleaned description, expected category, expected merchant). At least one sample per rule:
@@ -108,6 +108,7 @@ SAMPLES: list[tuple[str, str, str]] = [
     # transfers
     ("PIX ENVIADO JOAO", "Transferências", "Transferência"),
     ("TED RECEBIDA", "Transferências", "Transferência"),
+    ("PAGAMENTO FATURA", "Transferências", "Pagamento de fatura"),
     # fees and cash
     ("TARIFA PACOTE SERVICOS", "Taxas e Serviços", "Tarifa bancária"),
     ("IOF COMPRA INTERNACIONAL", "Taxas e Serviços", "IOF"),
@@ -126,7 +127,9 @@ def test_has_enough_rules_and_samples():
 @pytest.mark.parametrize(("text", "category", "merchant"), SAMPLES)
 def test_samples(text: str, category: str, merchant: str):
     hit = apply_rules(text)
-    assert hit == RuleHit(category, merchant, RULE_CONFIDENCE)
+    assert hit is not None
+    assert (hit.category, hit.merchant, hit.confidence) == (category, merchant, RULE_CONFIDENCE)
+    assert hit.is_internal == (merchant in INTERNAL_MERCHANTS)
 
 
 def test_no_rule_returns_category_outside_the_fixed_list():
@@ -156,6 +159,18 @@ def test_unknown_text_has_no_hit(text: str):
 def test_brand_rule_wins_over_generic_transfer():
     hit = apply_rules("PIX PADARIA PAO QUENTE")
     assert hit is not None and hit.category == "Alimentação"
+
+
+def test_only_card_bill_payments_are_internal_and_pix_to_people_is_not():
+    bill = apply_rules("PAGAMENTO FATURA")
+    pix = apply_rules("PIX ENVIADO JOAO")
+    assert bill is not None and bill.is_internal
+    assert pix is not None and not pix.is_internal  # a real expense until the user says otherwise
+
+
+def test_utility_bill_named_fatura_keeps_its_brand_category():
+    hit = apply_rules("FATURA CLARO")
+    assert hit is not None and hit.merchant == "Claro"
 
 
 def test_word_boundaries_avoid_false_positives():

@@ -8,7 +8,7 @@ Rule order (first match wins), from most to least specific:
   2. Brands, grouped by category.
   3. Generic words ("PADARIA", "FARMACIA", "SUPERMERCADO", "POSTO").
   4. Income words ("SALARIO", "RENDIMENTO").
-  5. Generic transfers ("PIX", "TED", "DOC").
+  5. Internal movements ("FATURA") and generic transfers ("PIX", "TED", "DOC").
   6. Bank fees and cash withdrawals.
 
 Brand rules come before generic ones so "PIX PADARIA X" is food, not a transfer.
@@ -34,6 +34,7 @@ class RuleHit(NamedTuple):
     category: str
     merchant: str
     confidence: float
+    is_internal: bool = False
 
 
 # (regex, category, merchant). Keep merchants unique: tests rely on it.
@@ -156,7 +157,11 @@ _SPEC: list[tuple[str, str, str]] = [
         "Bolsa ou estágio",
     ),
     (r"\bRENDIMENTOS?\b", "Renda", "Rendimentos"),
-    # --- 5. Generic transfers ------------------------------------------------------------
+    # --- 5. Internal movements and generic transfers --------------------------------------
+    # Card-bill payments leave the checking account AND the bill's purchases are imported from
+    # the card statement: treating the payment as "Transferências" avoids counting it twice.
+    # (Utility bills named "FATURA" match their brand rule above first.)
+    (r"\bFATURA\b", "Transferências", "Pagamento de fatura"),
     (r"\bPIX\b|\bTED\b|\bDOC\b|\bTRANSF(ERENCIA)?\b", "Transferências", "Transferência"),
     # --- 6. Fees and cash ----------------------------------------------------------------
     (r"\bTARIFA\b", "Taxas e Serviços", "Tarifa bancária"),
@@ -166,6 +171,9 @@ _SPEC: list[tuple[str, str, str]] = [
     (r"\bSEGURO\b|\bPORTO SEGURO\b", "Taxas e Serviços", "Seguro"),
     (r"\bSAQUE\b", "Outros", "Saque"),
 ]
+
+# Merchants whose rows are internal movements (excluded from income/expense totals).
+INTERNAL_MERCHANTS = frozenset({"Pagamento de fatura"})
 
 RULES: tuple[Rule, ...] = tuple(Rule(re.compile(p), c, m) for p, c, m in _SPEC)
 
@@ -178,5 +186,7 @@ def apply_rules(description_clean: str) -> RuleHit | None:
     """Return the first matching rule for a cleaned description, or None."""
     for rule in RULES:
         if rule.pattern.search(description_clean):
-            return RuleHit(rule.category, rule.merchant, RULE_CONFIDENCE)
+            return RuleHit(
+                rule.category, rule.merchant, RULE_CONFIDENCE, rule.merchant in INTERNAL_MERCHANTS
+            )
     return None

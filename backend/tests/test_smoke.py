@@ -3,17 +3,25 @@ from sqlalchemy import inspect
 
 from app.categories import CATEGORIES, is_allowed
 from app.db import engine
-from app.main import app
 
 
-def test_health_and_tables():
-    with TestClient(app) as client:  # runs lifespan -> create_all
-        r = client.get("/api/health")
-        assert r.status_code == 200
-        assert r.json() == {"status": "ok"}
+def test_health_is_liveness_only(client: TestClient):
+    r = client.get("/api/health")
+    assert r.status_code == 200
+    assert r.json() == {"status": "ok"}
+
+
+def test_ready_checks_the_database(client: TestClient):
+    r = client.get("/api/health/ready")
+    assert r.status_code == 200
+    assert r.json() == {"status": "ok"}
+
+
+def test_schema_has_every_table(schema: None):
     tables = set(inspect(engine).get_table_names())
     assert {
         "users",
+        "accounts",
         "import_batches",
         "transactions",
         "user_rules",
@@ -24,9 +32,8 @@ def test_health_and_tables():
     } <= tables
 
 
-def test_categories_endpoint_and_sign_rules():
-    with TestClient(app) as client:
-        data = client.get("/api/categories").json()
+def test_categories_endpoint_and_sign_rules(client: TestClient):
+    data = client.get("/api/categories").json()
     assert "Renda" not in data["expense"]
     assert len(CATEGORIES) == 13 and len(set(CATEGORIES)) == 13
     assert is_allowed("Renda", 1000) and not is_allowed("Renda", -1000)
