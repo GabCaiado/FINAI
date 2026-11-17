@@ -50,6 +50,7 @@ jobs:
       - run: ruff check .
       - run: ruff format --check .
       - run: mypy
+      - run: lint-imports
       - run: pytest -q
 
   frontend:

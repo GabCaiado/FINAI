@@ -32,3 +32,44 @@ no_implicit_optional = true
 [[tool.mypy.overrides]]
 module = ["pdfplumber.*", "slowapi.*", "pandas.*"]
 ignore_missing_imports = true
+
+# Architecture guardrails (work package A1). Run: `lint-imports` from backend/.
+# Add an exception only with a comment saying why, and justify it in the PR.
+[tool.importlinter]
+root_package = "app"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Layers: routers -> services -> models/ai/parsers, never the reverse"
+type = "layers"
+layers = [
+    "app.routers",
+    "app.services",
+    "app.models | app.ai | app.parsers",
+]
+
+[[tool.importlinter.contracts]]
+name = "Services, parsers and ai do not depend on the web framework"
+type = "forbidden"
+source_modules = ["app.services", "app.parsers", "app.ai"]
+forbidden_modules = ["fastapi", "starlette"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Parsers and ai are pure: no database, ORM, models or services"
+type = "forbidden"
+source_modules = ["app.parsers", "app.ai"]
+forbidden_modules = ["sqlalchemy", "app.db", "app.models", "app.services"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Only app.ai.provider imports openai"
+type = "forbidden"
+source_modules = ["app"]
+forbidden_modules = ["openai"]
+allow_indirect_imports = true
+ignore_imports = [
+    # The single sanctioned LLM adapter. Not created yet (work package B), so the line may match nothing.
+    "app.ai.provider -> openai",
+]
+unmatched_ignore_imports_alerting = "none"
