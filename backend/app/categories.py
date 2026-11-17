@@ -1,6 +1,16 @@
 EXPENSE_CATEGORIES = [
-    "Alimentação", "Mercado", "Transporte", "Moradia", "Saúde", "Educação",
-    "Lazer", "Assinaturas", "Compras", "Taxas e Serviços", "Transferências", "Outros",
+    "Alimentação",
+    "Mercado",
+    "Transporte",
+    "Moradia",
+    "Saúde",
+    "Educação",
+    "Lazer",
+    "Assinaturas",
+    "Compras",
+    "Taxas e Serviços",
+    "Transferências",
+    "Outros",
 ]
 INCOME_CATEGORIES = ["Renda", "Transferências", "Outros"]
 CATEGORIES = [*EXPENSE_CATEGORIES, "Renda"]  # 13 distinct values

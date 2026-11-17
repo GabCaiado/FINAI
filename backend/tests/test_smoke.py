@@ -12,8 +12,16 @@ def test_health_and_tables():
         assert r.status_code == 200
         assert r.json() == {"status": "ok"}
     tables = set(inspect(engine).get_table_names())
-    assert {"users", "import_batches", "transactions", "user_rules",
-            "recurring_items", "goals", "llm_cache", "llm_usage"} <= tables
+    assert {
+        "users",
+        "import_batches",
+        "transactions",
+        "user_rules",
+        "recurring_items",
+        "goals",
+        "llm_cache",
+        "llm_usage",
+    } <= tables
 
 
 def test_categories_endpoint_and_sign_rules():

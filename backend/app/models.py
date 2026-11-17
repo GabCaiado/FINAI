@@ -1,5 +1,5 @@
 import uuid
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
@@ -12,7 +12,7 @@ def _uuid() -> str:
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class User(Base):
@@ -40,7 +40,9 @@ class Transaction(Base):
     __table_args__ = (UniqueConstraint("user_id", "dedupe_hash", name="uq_tx_user_dedupe"),)
     id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    batch_id: Mapped[str | None] = mapped_column(ForeignKey("import_batches.id", ondelete="CASCADE"), nullable=True)
+    batch_id: Mapped[str | None] = mapped_column(
+        ForeignKey("import_batches.id", ondelete="CASCADE"), nullable=True
+    )
     date: Mapped[date] = mapped_column(Date, index=True)
     description_raw: Mapped[str] = mapped_column(String)
     description_clean: Mapped[str] = mapped_column(String)
@@ -49,7 +51,9 @@ class Transaction(Base):
     type: Mapped[str] = mapped_column(String)  # income | expense
     category: Mapped[str] = mapped_column(String)
     suggested_category: Mapped[str | None] = mapped_column(String, nullable=True)
-    category_source: Mapped[str] = mapped_column(String, default="rule")  # user | rule | llm | manual
+    category_source: Mapped[str] = mapped_column(
+        String, default="rule"
+    )  # user | rule | llm | manual
     confidence: Mapped[float] = mapped_column(Float, default=0.0)
     is_recurring: Mapped[bool] = mapped_column(Boolean, default=False)
     status: Mapped[str] = mapped_column(String, default="staged")  # staged | confirmed
@@ -92,6 +96,7 @@ class Goal(Base):
 
 class LlmCache(Base):
     """Global cache keyed by cleaned, PII-masked description."""
+
     __tablename__ = "llm_cache"
     description_clean: Mapped[str] = mapped_column(String, primary_key=True)
     category: Mapped[str] = mapped_column(String)
