@@ -10,3 +10,6 @@ dist/
 CLAUDE.md
 .claude/
 docs/
+
+# P1.3 generated output (arbitrary runs); only data/synthetic/samples/ is versioned
+data/synthetic/out/

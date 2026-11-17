@@ -1,0 +1,41 @@
+{
+  "seed": 42,
+  "sha256": {
+    "golden_set.csv": "8b7c564221e6d81abecc51644b5c3d69608e0d252f83b2a962be7dfaf9749e53",
+    "golden_set_labeling_sheet.csv": "dea82c3b6fe3cacfce20d0918a38668a72f31c1fb3aee42c2dedecba80376367",
+    "persona_a.csv": "3e0750b011f9fcfae46428019dac26d82600768f26dd1d35dd579d955536fec1",
+    "persona_a.ofx": "f11424c79b2d7eb801d1332d523bcecf7a9265b6ade8196a52087115ed8e976f",
+    "persona_a.pdf": "5de3da85c244eb755f40527719bdc43549a62ba8a8f7e52d4b695c546f148022",
+    "persona_a_unknown_header.csv": "496fed455f7589a0ee7901752219a97462a8e0b5488a56d0ea3e4bdcbfaa33b2",
+    "persona_a_v2.ofx": "56df3177d4dd4d4529a4e2e706dabb9e30542e9cb901c2489c6bcb2d0fbf846f",
+    "persona_b.csv": "521b5677f916a50c169b3ea2386f4dab05dc1a4c4a145421860a29fbb8e467d7",
+    "persona_b.ofx": "25270df5c234a0d72d08cc9aeee7fd53c0af363c761b00abeee79d2708e75cf8",
+    "persona_b.pdf": "608d7ac4e459d94330b61f3fc3eb7b9d817f09045ec4eba3795a975ef42a4c84",
+    "persona_b_card.csv": "6232e4a18fdf0a7d4780b17c5da6dd0f526fbd345be217b307577f4c1cf310d9",
+    "persona_b_card.pdf": "52137f30a9751b8bf9188992eb235fb2b16f6012c3caffb65ded1f2966e55083",
+    "persona_b_v2.ofx": "38f8d373e83fd11fa25e26e8de7fbec5e2d98a12e2dffc0adc68f9a64793ddea",
+    "persona_c.csv": "5c1befa266d9db36684ce27510a211069b4ec74879abe25774cc37d80f6f5f01",
+    "persona_c.ofx": "3ccdb29ed14761186dc3123a9026c4284fa712e38d3296bdbb450afae2a2d78f",
+    "persona_c.pdf": "eb0ac9da82afdf3324598ae555ade6e69fc0f0e036eced25504f7532c4765c87",
+    "persona_c_v2.ofx": "e77a4615bcbbd93851a88163b06673ffa8aad1cca3e574a637f3e0aea4cd0e81"
+  },
+  "start_month": "2026-09",
+  "statements": {
+    "persona_a": {
+      "rows": 48,
+      "sum_cents": 58930
+    },
+    "persona_b": {
+      "rows": 45,
+      "sum_cents": 207120
+    },
+    "persona_b_card": {
+      "rows": 43,
+      "sum_cents": -116230
+    },
+    "persona_c": {
+      "rows": 48,
+      "sum_cents": 1572550
+    }
+  }
+}

@@ -2,3 +2,6 @@
 *.png binary
 *.jpg binary
 *.pdf binary
+
+# OFX v1 uses CRLF; byte-for-byte sample files must not be normalised
+data/synthetic/samples/** -text
