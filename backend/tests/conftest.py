@@ -1,3 +1,4 @@
+import logging
 import os
 
 # Must run before `app` is imported: tests read backend/.env.test, never the developer's .env.
@@ -15,6 +16,7 @@ from sqlalchemy.orm import Session  # noqa: E402
 from app import models  # noqa: E402, F401
 from app.db import Base, SessionLocal, engine  # noqa: E402
 from app.main import app  # noqa: E402
+from app.rate_limit import limiter  # noqa: E402
 
 
 def _truncate_all() -> None:
@@ -48,6 +50,12 @@ def db(schema: None) -> Iterator[Session]:
 
 @pytest.fixture
 def client(schema: None) -> Iterator[TestClient]:
-    with TestClient(app) as test_client:
+    limiter.reset()  # the limiter's counters are process-wide: never let one test spend another's
+    root = logging.getLogger()
+    saved_handlers, saved_level = root.handlers[:], root.level
+    with TestClient(app) as test_client:  # startup reconfigures the root logger
         yield test_client
+    root.handlers[:] = saved_handlers
+    root.setLevel(saved_level)
     _truncate_all()
+    limiter.reset()

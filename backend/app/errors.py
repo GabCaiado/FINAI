@@ -20,6 +20,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app import messages
 from app.request_context import get_request_id
 
 logger = logging.getLogger("finai.errors")
@@ -48,12 +49,12 @@ class AppError(Exception):
 
 
 _HTTP_DEFAULTS: dict[int, tuple[str, str]] = {
-    401: ("unauthorized", "Faça login para continuar."),
+    401: ("unauthorized", messages.UNAUTHORIZED),
     403: ("forbidden", "Você não tem permissão para esta ação."),
-    404: ("not_found", "Recurso não encontrado."),
+    404: ("not_found", messages.NOT_FOUND),
     405: ("method_not_allowed", "Método não permitido."),
     413: ("payload_too_large", "Arquivo grande demais."),
-    429: ("rate_limited", "Muitas tentativas. Aguarde um instante e tente novamente."),
+    429: ("rate_limited", messages.RATE_LIMITED),
 }
 
 

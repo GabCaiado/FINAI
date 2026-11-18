@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     jwt_expire_hours: int
     cookie_secure: bool
     cors_origin: str
+    password_min_length: int
+    login_rate_limit: str  # slowapi format, e.g. "5/minute"; per client IP
 
     llm_provider: Literal["openai", "mock"]
     llm_api_key: str = ""  # optional: only needed with LLM_PROVIDER=openai

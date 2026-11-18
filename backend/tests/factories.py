@@ -56,3 +56,15 @@ def make_transaction(db: Session, user: User, account: Account, **overrides: obj
     db.add(tx)
     db.flush()
     return tx
+
+
+def register_payload(**overrides: object) -> dict[str, object]:
+    """A valid body for POST /api/auth/register; tests override the field under test."""
+    payload: dict[str, object] = {
+        "email": f"person{next(_seq)}@example.com",
+        "password": "correct-horse-battery",
+        "name": "Pessoa Teste",
+        "consent": True,
+    }
+    payload.update(overrides)
+    return payload

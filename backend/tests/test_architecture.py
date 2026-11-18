@@ -27,6 +27,7 @@ PUBLIC_ROUTE_ALLOWLIST: dict[str, str] = {
     "/api/categories": "static category list; contains no user data",
     "/api/auth/register": "creates the session, so it cannot require one",
     "/api/auth/login": "creates the session, so it cannot require one",
+    "/api/auth/logout": "only clears the cookie; must work with an expired session",
     "/docs": "Swagger UI, disabled in production",
     "/docs/oauth2-redirect": "Swagger UI helper, disabled in production",
     "/openapi.json": "API schema, disabled in production",

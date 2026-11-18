@@ -13,6 +13,8 @@ VALUES: dict[str, object] = {
     "jwt_expire_hours": 24,
     "cookie_secure": False,
     "cors_origin": "http://localhost:5173",
+    "password_min_length": 8,
+    "login_rate_limit": "5/minute",
     "llm_provider": "mock",
     "llm_timeout_s": 15,
     "llm_concurrency": 4,

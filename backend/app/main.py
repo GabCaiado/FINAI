@@ -8,7 +8,8 @@ from app.config import settings
 from app.errors import install_error_handlers
 from app.logging_config import configure_logging
 from app.middleware import install_middleware
-from app.routers import meta
+from app.rate_limit import install_rate_limiting
+from app.routers import accounts, auth, meta
 
 
 @asynccontextmanager
@@ -36,7 +37,10 @@ def create_app() -> FastAPI:
     )
     install_middleware(app)
     install_error_handlers(app)
+    install_rate_limiting(app)
     app.include_router(meta.router, prefix="/api")
+    app.include_router(auth.router, prefix="/api")
+    app.include_router(accounts.router, prefix="/api")
     return app
 
 
