@@ -30,7 +30,7 @@ check_untyped_defs = true
 no_implicit_optional = true
 
 [[tool.mypy.overrides]]
-module = ["pdfplumber.*", "slowapi.*", "pandas.*"]
+module = ["pdfplumber.*", "slowapi.*"]
 ignore_missing_imports = true
 
 # Architecture guardrails (work package A1). Run: `lint-imports` from backend/.

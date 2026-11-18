@@ -21,7 +21,7 @@ transações, e um painel, metas e um assistente de chat explicam os números.
 
 | Camada   | Tecnologias                                                                   |
 | -------- | ----------------------------------------------------------------------------- |
-| Backend  | Python 3.11, FastAPI, Pydantic v2, SQLAlchemy 2, pandas, pdfplumber, argon2   |
+| Backend  | Python 3.11, FastAPI, Pydantic v2, SQLAlchemy 2, pdfplumber, argon2           |
 | Frontend | React, Vite, TypeScript, Tailwind CSS, React Router, Recharts, Vitest         |
 | Dados    | SQLite (local), PostgreSQL (produção)                                         |
 | Deploy   | Vercel (frontend), Render ou Railway (backend), Neon ou Supabase (Postgres)   |

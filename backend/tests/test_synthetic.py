@@ -23,10 +23,13 @@ import pdfplumber
 import pytest
 
 from app.categories import CATEGORIES, is_allowed
+from app.errors import AppError
+from app.parsers import csv_parser, ofx_parser
 
 SYNTH_DIR = Path(__file__).resolve().parents[2] / "data" / "synthetic"
 SAMPLES_DIR = SYNTH_DIR / "samples"
 SEED = 1234
+MAX_IMPORT_ROWS = 5000  # same as backend/.env.test
 START_MONTH = "2026-03"
 
 Row = tuple[date, str, int]
@@ -469,12 +472,106 @@ def test_kappa_rejects_unlabelled_or_mismatched_sheets(tmp_path: Path) -> None:
 # ----- TODO tracked in docs/report-notes.md -----
 
 
-@pytest.mark.skip(reason="TODO(B2): parse_csv does not exist yet; see docs/report-notes.md")
-def test_real_csv_parser_reads_every_synthetic_csv() -> None: ...
+def _real_csv_rows(path: Path, invert_sign: bool = False) -> list[Row]:
+    parsed = csv_parser.parse_csv(path.read_bytes(), None, invert_sign, MAX_IMPORT_ROWS)
+    return [(r.date, r.description_raw, r.amount_cents) for r in parsed]
 
 
-@pytest.mark.skip(reason="TODO(B2b): parse_ofx does not exist yet; see docs/report-notes.md")
-def test_real_ofx_parser_reads_every_synthetic_ofx() -> None: ...
+@pytest.mark.parametrize("name", ["persona_a", "persona_b", "persona_c"])
+def test_real_csv_parser_reads_the_checking_csvs_exactly(
+    name: str, out_dir: Path, statements: dict[str, object]
+) -> None:
+    rows = _real_csv_rows(out_dir / f"{name}.csv")
+
+    assert Counter(rows) == Counter(_expected(statements[name]))
+
+
+def test_real_csv_parser_reads_the_card_csv_with_invert_sign(
+    out_dir: Path, statements: dict[str, object]
+) -> None:
+    rows = _real_csv_rows(out_dir / "persona_b_card.csv", invert_sign=True)
+
+    assert Counter(rows) == Counter(_expected(statements["persona_b_card"]))
+
+
+def test_real_csv_parser_asks_for_a_mapping_on_the_unknown_header_file(
+    out_dir: Path, statements: dict[str, object]
+) -> None:
+    path = out_dir / "persona_a_unknown_header.csv"
+    with pytest.raises(AppError) as caught:
+        _real_csv_rows(path)
+    mapping = csv_parser.CsvMapping(date="Dt. Lanç.", description="Detalhe", amount="Montante")
+
+    mapped = csv_parser.parse_csv(path.read_bytes(), mapping, False, MAX_IMPORT_ROWS)
+
+    assert caught.value.code == "mapping_required"
+    assert caught.value.details == {"columns": ["Dt. Lanç.", "Detalhe", "Montante"]}
+    expected = Counter(_expected(statements["persona_a"]))
+    assert Counter((r.date, r.description_raw, r.amount_cents) for r in mapped) == expected
+
+
+def test_real_csv_parser_reproduces_the_committed_manifest_counts() -> None:
+    manifest = json.loads((SAMPLES_DIR / "MANIFEST.json").read_text(encoding="utf-8"))["statements"]
+
+    for name in ("persona_a", "persona_b", "persona_c"):
+        rows = _real_csv_rows(SAMPLES_DIR / f"{name}.csv")
+        assert (len(rows), sum(c for _, _, c in rows)) == (
+            manifest[name]["rows"],
+            manifest[name]["sum_cents"],
+        )
+
+
+def _real_ofx(path: Path) -> ofx_parser.OfxResult:
+    return ofx_parser.parse_ofx(path.read_bytes(), MAX_IMPORT_ROWS)
+
+
+@pytest.mark.parametrize("suffix", [".ofx", "_v2.ofx"], ids=["sgml-v1-latin1", "xml-v2-utf8"])
+@pytest.mark.parametrize("name", ["persona_a", "persona_b", "persona_c"])
+def test_real_ofx_parser_twins_the_csv_exactly(
+    name: str, suffix: str, out_dir: Path, statements: dict[str, object]
+) -> None:
+    result = _real_ofx(out_dir / f"{name}{suffix}")
+    csv_rows = _real_csv_rows(out_dir / f"{name}.csv")
+
+    ofx_rows = [(r.date, r.description_raw, r.amount_cents) for r in result.rows]
+    assert Counter(ofx_rows) == Counter(csv_rows) == Counter(_expected(statements[name]))
+    assert len(ofx_rows) == len(csv_rows)
+    assert sum(c for _, _, c in ofx_rows) == sum(c for _, _, c in csv_rows)
+
+
+@pytest.mark.parametrize("name", ["persona_a", "persona_b", "persona_c"])
+def test_real_ofx_parser_gives_every_row_a_unique_fitid_and_a_hint(
+    name: str, out_dir: Path
+) -> None:
+    result = _real_ofx(out_dir / f"{name}.ofx")
+
+    fitids = [r.external_id for r in result.rows]
+    assert None not in fitids
+    assert len(set(fitids)) == len(fitids)
+    assert result.account_hint == "1234"
+
+
+@pytest.mark.parametrize("name", ["persona_a", "persona_b", "persona_c"])
+def test_reimporting_an_ofx_reproduces_the_same_external_ids_in_both_syntaxes(
+    name: str, out_dir: Path
+) -> None:
+    first = _real_ofx(out_dir / f"{name}.ofx")
+    again = _real_ofx(out_dir / f"{name}.ofx")
+    xml = _real_ofx(out_dir / f"{name}_v2.ofx")
+
+    assert first.rows == again.rows
+    assert [r.external_id for r in first.rows] == [r.external_id for r in xml.rows]
+
+
+def test_committed_ofx_samples_match_the_manifest() -> None:
+    manifest = json.loads((SAMPLES_DIR / "MANIFEST.json").read_text(encoding="utf-8"))["statements"]
+
+    for name in ("persona_a", "persona_b", "persona_c"):
+        rows = _real_ofx(SAMPLES_DIR / f"{name}.ofx").rows
+        assert (len(rows), sum(r.amount_cents for r in rows)) == (
+            manifest[name]["rows"],
+            manifest[name]["sum_cents"],
+        )
 
 
 @pytest.mark.skip(reason="TODO(B3): parse_pdf does not exist yet; see docs/report-notes.md")
